@@ -7,11 +7,7 @@ document.addEventListener("DOMContentLoaded", function () {
         self.current_profile = ko.observable();
         self.add_name = ko.observable("");
 
-        // Import/Export properties
-        self.showImportModal = ko.observable(false); // Initialize to false to hide the modal by default
-        self.importMode = ko.observable("merge");
-        self.importError = ko.observable("");
-        self.importSuccess = ko.observable("");
+        // Import/Export properties will be handled with direct DOM manipulation
 
         self.current_name = ko.pureComputed(function () {
             return self.current_profile()
@@ -89,36 +85,75 @@ document.addEventListener("DOMContentLoaded", function () {
             if (self.current_profile()) self.current_profile().items([]);
         };
 
-        // Import/Export methods
-        self.showImportDialog = function (data, event) {
-            // Clear any previous error or success messages
-            self.importError("");
-            self.importSuccess("");
-            // Show the modal
-            self.showImportModal(true);
-            // Prevent default action if this is triggered by a link
-            if (event) {
-                event.preventDefault();
-                event.stopPropagation();
-            }
-            return false;
-        };
+        // We'll add the import/export functionality after the view model is initialized
 
-        self.hideImportDialog = function () {
-            // Explicitly set the modal to hidden
-            self.showImportModal(false);
-            // Reset the file input and error/success messages
-            document.getElementById("import-file").value = "";
-            self.importError("");
-            self.importSuccess("");
-            return false; // Prevent default action and stop propagation
-        };
+        try {
+            new DismissalsCollection().dismiss("profile_page_viewed");
+            self.selectByIndex(0);
+        } catch (e) {
+            /*No profiles*/
+        }
+    };
 
-        self.exportProfiles = function () {
+    vm = new ProfilesViewModel();
+
+    ko.bindingProvider.instance = new ko.secureBindingsProvider({});
+    ko.applyBindings(vm, document.getElementById("profiles"));
+
+    // Add import/export functionality using direct DOM manipulation
+    // We're already inside a DOMContentLoaded event, so we can add our code directly
+    (function () {
+        // Get DOM elements
+        var exportBtn = document.getElementById("export-profiles-btn");
+        var importBtn = document.getElementById("import-profiles-btn");
+        var importModal = document.getElementById("import-modal");
+        var closeModalBtn = document.getElementById("close-import-modal");
+        var cancelImportBtn = document.getElementById("cancel-import-btn");
+        var confirmImportBtn = document.getElementById(
+            "import-profiles-confirm-btn"
+        );
+        var importFileInput = document.getElementById("import-file");
+        var importErrorDiv = document.getElementById("import-error");
+        var importSuccessDiv = document.getElementById("import-success");
+
+        // Function to show the import modal
+        function showImportModal() {
+            // Clear previous messages
+            importErrorDiv.style.display = "none";
+            importSuccessDiv.style.display = "none";
+            importErrorDiv.textContent = "";
+            importSuccessDiv.textContent = "";
+            // Clear file input
+            importFileInput.value = "";
+            // Show modal
+            importModal.style.display = "block";
+        }
+
+        // Function to hide the import modal
+        function hideImportModal() {
+            importModal.style.display = "none";
+        }
+
+        // Function to show error message
+        function showError(message) {
+            importErrorDiv.textContent = message;
+            importErrorDiv.style.display = "block";
+            importSuccessDiv.style.display = "none";
+        }
+
+        // Function to show success message
+        function showSuccess(message) {
+            importSuccessDiv.textContent = message;
+            importSuccessDiv.style.display = "block";
+            importErrorDiv.style.display = "none";
+        }
+
+        // Function to export profiles
+        function exportProfiles() {
             // Create a JSON object with all profiles
             var profilesData = {};
 
-            _(self.profiles.items()).each(function (profile) {
+            _(vm.profiles.items()).each(function (profile) {
                 if (profile.name()) {
                     profilesData[profile.name()] = profile.items();
                 }
@@ -154,27 +189,16 @@ document.addEventListener("DOMContentLoaded", function () {
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
             }, 100);
-        };
+        }
 
-        self.importProfiles = function (data, event) {
-            var fileInput = document.getElementById("import-file");
-
-            // Prevent default action if this is triggered by a button
-            if (event) {
-                event.preventDefault();
-                event.stopPropagation();
+        // Function to import profiles
+        function importProfiles() {
+            if (!importFileInput.files || importFileInput.files.length === 0) {
+                showError("Please select a file to import.");
+                return;
             }
 
-            if (
-                !fileInput ||
-                !fileInput.files ||
-                fileInput.files.length === 0
-            ) {
-                self.importError("Please select a file to import.");
-                return false;
-            }
-
-            var file = fileInput.files[0];
+            var file = importFileInput.files[0];
             var reader = new FileReader();
 
             reader.onload = function (e) {
@@ -183,16 +207,19 @@ document.addEventListener("DOMContentLoaded", function () {
 
                     // Validate the imported data
                     if (!importedData.profiles) {
-                        self.importError(
-                            "Invalid profile data: missing profiles."
-                        );
+                        showError("Invalid profile data: missing profiles.");
                         return;
                     }
 
+                    // Get the selected import mode
+                    var importMode = document.querySelector(
+                        'input[name="import-mode"]:checked'
+                    ).value;
+
                     // Process the import based on the selected mode
-                    if (self.importMode() === "replace") {
+                    if (importMode === "replace") {
                         // Clear existing profiles
-                        self.profiles.items.removeAll();
+                        vm.profiles.items.removeAll();
                     }
 
                     // Import the profiles
@@ -200,23 +227,23 @@ document.addEventListener("DOMContentLoaded", function () {
                     var updateCount = 0;
 
                     _(importedData.profiles).each(function (items, name) {
-                        var existingProfile = self.profiles.find(name);
+                        var existingProfile = vm.profiles.find(name);
 
                         if (existingProfile) {
                             // Update existing profile if in merge mode
-                            if (self.importMode() === "merge") {
+                            if (importMode === "merge") {
                                 existingProfile.items(items);
                                 updateCount++;
                             }
                         } else {
                             // Add new profile
-                            self.profiles.add(name, items);
+                            vm.profiles.add(name, items);
                             importCount++;
                         }
                     });
 
                     // Save the changes
-                    self.profiles.save(function () {
+                    vm.profiles.save(function () {
                         var message = "Import successful! ";
                         if (importCount > 0) {
                             message +=
@@ -226,42 +253,42 @@ document.addEventListener("DOMContentLoaded", function () {
                             message +=
                                 updateCount + " existing profile(s) updated.";
                         }
-                        self.importSuccess(message);
+                        showSuccess(message);
 
                         // Reset the file input
-                        fileInput.value = "";
+                        importFileInput.value = "";
 
                         // Refresh the view after a short delay
                         setTimeout(function () {
-                            self.hideImportDialog();
+                            hideImportModal();
                             // Reload the page to show the updated profiles
                             window.location.reload();
                         }, 2000);
                     });
                 } catch (error) {
-                    self.importError(
-                        "Error importing profiles: " + error.message
-                    );
+                    showError("Error importing profiles: " + error.message);
                 }
             };
 
             reader.onerror = function () {
-                self.importError("Error reading file.");
+                showError("Error reading file.");
             };
 
             reader.readAsText(file);
-        };
-
-        try {
-            new DismissalsCollection().dismiss("profile_page_viewed");
-            self.selectByIndex(0);
-        } catch (e) {
-            /*No profiles*/
         }
-    };
 
-    vm = new ProfilesViewModel();
+        // Add event listeners
+        exportBtn.addEventListener("click", exportProfiles);
+        importBtn.addEventListener("click", showImportModal);
+        closeModalBtn.addEventListener("click", hideImportModal);
+        cancelImportBtn.addEventListener("click", hideImportModal);
+        confirmImportBtn.addEventListener("click", importProfiles);
 
-    ko.bindingProvider.instance = new ko.secureBindingsProvider({});
-    ko.applyBindings(vm, document.getElementById("profiles"));
+        // Close modal when clicking outside of it
+        window.addEventListener("click", function (event) {
+            if (event.target === importModal) {
+                hideImportModal();
+            }
+        });
+    })();
 });

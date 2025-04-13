@@ -341,7 +341,7 @@ fieldset#options .field {
     background-color: rgba(0, 0, 0, 0.4);
 }
 
-/* Modal display is now controlled by inline styles */
+/* Modal display is controlled by JavaScript */
 
 .modal-content {
     background-color: #fefefe;

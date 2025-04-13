@@ -88,11 +88,8 @@
 
           <hr />
           <p class="sync-actions">
-            <button id="export" data-sbind="click: exportProfiles"><i class="fa fa-download"></i> Export
-              Profiles</button>
-            <button id="import" type="button" data-sbind="event: {click: showImportDialog}"><i class="fa fa-upload"></i>
-              Import
-              Profiles</button>
+            <button id="export-profiles-btn"><i class="fa fa-download"></i> Export Profiles</button>
+            <button id="import-profiles-btn"><i class="fa fa-upload"></i> Import Profiles</button>
           </p>
 
         </div>
@@ -119,10 +116,10 @@
       </fieldset>
     </div>
     <!-- Import Modal Dialog -->
-    <div id="import-modal" class="modal" data-sbind="style: {display: showImportModal() ? 'block' : 'none'}">
+    <div id="import-modal" class="modal">
       <div class="modal-content">
         <div class="modal-header">
-          <span class="close" data-sbind="click: hideImportDialog">&times;</span>
+          <span class="close" id="close-import-modal">&times;</span>
           <h2>Import Profiles</h2>
         </div>
         <div class="modal-body">
@@ -130,20 +127,20 @@
           <input type="file" id="import-file" accept=".json" />
           <p>Import mode:</p>
           <label>
-            <input type="radio" name="import-mode" value="merge" checked data-sbind="checked: importMode" />
+            <input type="radio" name="import-mode" value="merge" checked />
             Merge with existing profiles (keep existing profiles, add new ones)
           </label>
           <br />
           <label>
-            <input type="radio" name="import-mode" value="replace" data-sbind="checked: importMode" />
+            <input type="radio" name="import-mode" value="replace" />
             Replace all existing profiles
           </label>
-          <div id="import-error" class="error" data-sbind="visible: importError, text: importError"></div>
-          <div id="import-success" class="success" data-sbind="visible: importSuccess, text: importSuccess"></div>
+          <div id="import-error" class="error" style="display: none;"></div>
+          <div id="import-success" class="success" style="display: none;"></div>
         </div>
         <div class="modal-footer">
-          <button type="button" data-sbind="event: {click: importProfiles}">Import</button>
-          <button type="button" data-sbind="event: {click: hideImportDialog}">Cancel</button>
+          <button type="button" id="import-profiles-confirm-btn">Import</button>
+          <button type="button" id="cancel-import-btn">Cancel</button>
         </div>
       </div>
     </div>
