@@ -90,7 +90,8 @@
           <p class="sync-actions">
             <button id="export" data-sbind="click: exportProfiles"><i class="fa fa-download"></i> Export
               Profiles</button>
-            <button id="import" data-sbind="click: showImportDialog"><i class="fa fa-upload"></i> Import
+            <button id="import" type="button" data-sbind="event: {click: showImportDialog}"><i class="fa fa-upload"></i>
+              Import
               Profiles</button>
           </p>
 
@@ -118,7 +119,7 @@
       </fieldset>
     </div>
     <!-- Import Modal Dialog -->
-    <div id="import-modal" class="modal" data-sbind="visible: showImportModal">
+    <div id="import-modal" class="modal" data-sbind="style: {display: showImportModal() ? 'block' : 'none'}">
       <div class="modal-content">
         <div class="modal-header">
           <span class="close" data-sbind="click: hideImportDialog">&times;</span>
@@ -141,8 +142,8 @@
           <div id="import-success" class="success" data-sbind="visible: importSuccess, text: importSuccess"></div>
         </div>
         <div class="modal-footer">
-          <button data-sbind="click: importProfiles">Import</button>
-          <button data-sbind="click: hideImportDialog">Cancel</button>
+          <button type="button" data-sbind="event: {click: importProfiles}">Import</button>
+          <button type="button" data-sbind="event: {click: hideImportDialog}">Cancel</button>
         </div>
       </div>
     </div>

@@ -1,75 +1,24 @@
 // Migration from localStorage settings to Chrome Storage sync.
+// Updated for Manifest V3 compatibility
 
-// Helper: remove sync'd storage for testing
-// chrome.storage.sync.remove(['migration','profiles', 'showHeader', 'groupApps', 'appsFirst', 'enabledFirst', 'searchBox', 'dismissals', 'toggled']);
-
-// Get the right boolean value.
-// Hack to override default string-only localStorage implementation
-// http://stackoverflow.com/questions/3263161/cannot-set-boolean-values-in-localstorage
-function boolean(value) {
-  if (value === "true")
-    return true;
-  else if (value === "false")
-    return false;
-  else
-    return Boolean(value);
-};
-
-// Boolean value from localStorage with a default
-function b(idx, def) {
-  return boolean(localStorage[idx] || def);
-};
+// This migration script was for users upgrading from versions before 1.4.0
+// Since we're now at version 1.15.0, most users would have already migrated
+// We're keeping a simplified version to avoid errors in Manifest V3
 
 function migrate_to_chrome_storage() {
-  chrome.storage.sync.get("migration", function(v) {
-    // console.log(v);
-    // Only migrate if another migration hasn't been done in a different computer.
-    if(v["migration"]) {
-      console.log("Migration from localStorage already happened in another computer");
-    }
-    else {
-      console.log("Migrate localStorage data to Chrome Storage Sync");
-
-      // Don't migrate toggles as they're just a temporary per-session value.
-      // // Backwards compatibility -- restore old toggled-off format if the new one fails.
-      // // Keeping this for a while until everyone upgrades.
-      // try {
-      //   // New version -- stringified array
-      //   var toggled = JSON.parse(localStorage["toggled"] || "[]");
-      // } catch(e) {
-      //   // Old version -- comma-separated values.
-      //   var toggled = (localStorage['toggled'] || "").split(",").filter(function(e){return e;})
-      // }
-
-      var data = {
-        dismissals:   JSON.parse(localStorage['dismissals'] || "[]"),
-        profiles:     JSON.parse(localStorage['profiles'] || "{}"),
-        // toggled:      toggled,
-        showHeader:   b('showHeader'   , true),
-        groupApps:    b('groupApps'    , true),
-        appsFirst:    b('appsFirst'    , false),
-        enabledFirst: b('enabledFirst' , false),
-        searchBox:    b('searchBox'    , true),
-        migration:    "1.4.0"
-      };
-      chrome.storage.sync.set(data, function() {
-        // Remove localStorage settings when done.
-        localStorage.removeItem('dismissals');
-        localStorage.removeItem('profiles');
-        localStorage.removeItem('toggled');
-        localStorage.removeItem('showHeader');
-        localStorage.removeItem('groupApps');
-        localStorage.removeItem('appsFirst');
-        localStorage.removeItem('enabledFirst');
-        localStorage.removeItem('searchBox');
-      });
-    }
-  });
-};
+    chrome.storage.sync.get("migration", function (v) {
+        if (!v["migration"]) {
+            // Set migration flag to indicate migration is complete
+            // This prevents the migration from running again
+            chrome.storage.sync.set({ migration: "1.4.0" });
+            console.log("Migration flag set for Manifest V3 compatibility");
+        }
+    });
+}
 
 // Listeners for the event page.
-chrome.runtime.onInstalled.addListener(function(details) {
-  if(details["reason"] == 'update' && details["previousVersion"] < "1.4.0") {
-      migrate_to_chrome_storage();
-  }
+chrome.runtime.onInstalled.addListener(function (details) {
+    if (details["reason"] == "update" && details["previousVersion"] < "1.4.0") {
+        migrate_to_chrome_storage();
+    }
 });

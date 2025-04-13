@@ -8,7 +8,7 @@ document.addEventListener("DOMContentLoaded", function () {
         self.add_name = ko.observable("");
 
         // Import/Export properties
-        self.showImportModal = ko.observable(false);
+        self.showImportModal = ko.observable(false); // Initialize to false to hide the modal by default
         self.importMode = ko.observable("merge");
         self.importError = ko.observable("");
         self.importSuccess = ko.observable("");
@@ -90,16 +90,28 @@ document.addEventListener("DOMContentLoaded", function () {
         };
 
         // Import/Export methods
-        self.showImportDialog = function () {
+        self.showImportDialog = function (data, event) {
+            // Clear any previous error or success messages
             self.importError("");
             self.importSuccess("");
+            // Show the modal
             self.showImportModal(true);
+            // Prevent default action if this is triggered by a link
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            return false;
         };
 
         self.hideImportDialog = function () {
+            // Explicitly set the modal to hidden
             self.showImportModal(false);
-            // Reset the file input
+            // Reset the file input and error/success messages
             document.getElementById("import-file").value = "";
+            self.importError("");
+            self.importSuccess("");
+            return false; // Prevent default action and stop propagation
         };
 
         self.exportProfiles = function () {
@@ -144,12 +156,22 @@ document.addEventListener("DOMContentLoaded", function () {
             }, 100);
         };
 
-        self.importProfiles = function () {
+        self.importProfiles = function (data, event) {
             var fileInput = document.getElementById("import-file");
 
-            if (!fileInput.files || fileInput.files.length === 0) {
+            // Prevent default action if this is triggered by a button
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+
+            if (
+                !fileInput ||
+                !fileInput.files ||
+                fileInput.files.length === 0
+            ) {
                 self.importError("Please select a file to import.");
-                return;
+                return false;
             }
 
             var file = fileInput.files[0];
