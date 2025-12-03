@@ -1,0 +1,18 @@
+build_status:
+  - url: 'https://github.com/chirag127/Chrome-Extension-Manager-Utility/actions/workflows/ci.yml'
+    img: 'https://img.shields.io/github/actions/workflow/status/chirag127/Chrome-Extension-Manager-Utility/ci.yml?style=flat-square'
+code_coverage:
+  - url: 'https://app.codecov.io/github/chirag127/Chrome-Extension-Manager-Utility'
+    img: 'https://img.shields.io/codecov/c/github/chirag127/Chrome-Extension-Manager-Utility?style=flat-square'
+tech_stack:
+  - img: 'https://img.shields.io/badge/language-javascript-323330?style=flat-square&logo=javascript'
+  - img: 'https://img.shields.io/badge/framework-vite-646CFF?style=flat-square&logo=vite'
+  - img: 'https://img.shields.io/badge/css-tailwind-38B2AC?style=flat-square&logo=tailwindcss'
+lint_format:
+  - img: 'https://img.shields.io/badge/linter-biome-6F7E88?style=flat-square&logo=biome'
+license:
+  - url: 'https://github.com/chirag127/Chrome-Extension-Manager-Utility/blob/main/LICENSE'
+    img: 'https://img.shields.io/badge/license-CC%20BY--NC%204.0-blue?style=flat-square'
+stars:
+  - url: 'https://github.com/chirag127/Chrome-Extension-Manager-Utility/stargazers'
+    img: 'https://img.shields.io/github/stars/chirag127/Chrome-Extension-Manager-Utility?style=flat-square'
